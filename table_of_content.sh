@@ -1,63 +1,60 @@
 #!/bin/bash
-FILE="Write here path of text file"
+FILE="/Users/julien/Documents/notes_de_cours_et_cours/module_cours/web/styles/style_livre_html.styl"
 
 echo "---------------------------"
 
-LIGNE_DEBUT_TABLE_DES_MATIERE="$(gsed -n '/\/\/-----table des matieres-----\/\//=' $FILE)"
-LIGNE_FIN_TABLE_DES_MATIERE=$(gsed -n '/\/\/--@table des matieres@--\/\//=' $FILE)
+FIRST_LINE_OF_TABLE_OF_CONTENT="$(gsed -n '/\/\/-----Table of content-----\/\//=' $FILE)"
+LAST_LINE_OF_TABLE_OF_CONTENT=$(gsed -n '/\/\/--@Table of content@--\/\//=' $FILE)
 
-LIGNE_A_EFFACER_DEBUT=$(($LIGNE_DEBUT_TABLE_DES_MATIERE+1))
-LIGNE_A_EFFACER_FIN=$(($LIGNE_FIN_TABLE_DES_MATIERE-1))
+FIRST_LINE_TO_DELETE=$(($FIRST_LINE_OF_TABLE_OF_CONTENT+1))
+LAST_LINE_TO_DELETE=$(($LAST_LINE_OF_TABLE_OF_CONTENT-1))
 
-gsed -i "${LIGNE_A_EFFACER_DEBUT},${LIGNE_A_EFFACER_FIN}d" $FILE
+gsed -i "${FIRST_LINE_TO_DELETE},${LAST_LINE_TO_DELETE}d" $FILE
 
 
 #Firt get the title of the sections
-LIGNE_SECTION=()
-LIGNE_SECTION+=($(gsed -n '/\/\/\@/=' "$FILE"))
-NOMBRE_ELEMENT_ARRAY="${#LIGNE_SECTION[@]}"
+LINE_NUMBER_OF_COMMENTED_SECTION=()
+LINE_NUMBER_OF_COMMENTED_SECTION+=($(gsed -n '/\/\/\@/=' "$FILE"))
+TOTAL_ELEMENT_ARRAY_LINE_NUMBER_OF_COMMENTED_SECTION="${#LINE_NUMBER_OF_COMMENTED_SECTION[@]}"
 
-LIGNE_FIN_TABLE_DES_MATIERE=$(gsed -n '/\/\/--@table des matieres@--\/\//=' $FILE)
-LIGNE_DEBUT_TABLE_DES_MATIERE="$(gsed -n '/\/\/-----table des matieres-----\/\//=' $FILE)"
+LAST_LINE_OF_TABLE_OF_CONTENT=$(gsed -n '/\/\/--@Table of content@--\/\//=' $FILE)
+FIRST_LINE_OF_TABLE_OF_CONTENT="$(gsed -n '/\/\/-----Table of content-----\/\//=' $FILE)"
 
 #boucle mettre les titres de sections dans une liste
 j=0
-	until [ ! $j -lt $NOMBRE_ELEMENT_ARRAY ]
+	until [ ! $j -lt $TOTAL_ELEMENT_ARRAY_LINE_NUMBER_OF_COMMENTED_SECTION ]
 	do
 
-	TITRE_SECTION_ARROBAS[$j]=$(gsed -n "${LIGNE_SECTION[$j]} p" "$FILE")
-	TITRE_SECTION[$j]=$(echo "${TITRE_SECTION_ARROBAS[$j]}" | gsed -e 's/@//g')
+	SECTION_TITLE_WITH_ARROBAS[$j]=$(gsed -n "${LINE_NUMBER_OF_COMMENTED_SECTION[$j]} p" "$FILE")
+	SECTION_TITLE_WITHOUT_ARROBAS[$j]=$(echo "${SECTION_TITLE_WITH_ARROBAS[$j]}" | gsed -e 's/@//g')
 
-	echo "${TITRE_SECTION[$j]}"
+	echo "${SECTION_TITLE_WITHOUT_ARROBAS[$j]}"
 
 j=`expr $j + 1`
 done
 #
 k=0
-		until [ ! $k -lt $NOMBRE_ELEMENT_ARRAY ]
+		until [ ! $k -lt $TOTAL_ELEMENT_ARRAY_LINE_NUMBER_OF_COMMENTED_SECTION ]
 	do
-		gsed -i "$((${k}+${LIGNE_DEBUT_TABLE_DES_MATIERE})) a ${TITRE_SECTION[$k]}" $FILE
+		gsed -i "$((${k}+${FIRST_LINE_OF_TABLE_OF_CONTENT})) a ${SECTION_TITLE_WITHOUT_ARROBAS[$k]}" $FILE
 
 k=`expr $k + 1`
 done
 
-#Second write the conten
-LIGNE_SECTION_SECOND=()
-LIGNE_SECTION_SECOND+=($(gsed -n '/\/\/\@/=' "$FILE"))
-LIGNE_DEBUT_TABLE_DES_MATIERE_SECOND="$(gsed -n '/\/\/-----table des matieres-----\/\//=' $FILE)"
-PLUS_UN_TABLE_DES_MATIERE=$(($LIGNE_DEBUT_TABLE_DES_MATIERE_SECOND+1))
+#Second write the content
+LINE_NUMBER_OF_COMMENTED_SECOND_SECTION=()
+LINE_NUMBER_OF_COMMENTED_SECOND_SECTION+=($(gsed -n '/\/\/\@/=' "$FILE"))
+FIRST_LINE_OF_TABLE_OF_CONTENT_SECOND="$(gsed -n '/\/\/-----Table of content-----\/\//=' $FILE)"
+ADD_ONE_TO_FIRST_LINE_OF_TABLE_OF_CONTENT=$(($FIRST_LINE_OF_TABLE_OF_CONTENT_SECOND+1))
 
 #boucle mettre les numéro de ligne dans la table des matières
 m=0
-		until [ ! $m -lt $NOMBRE_ELEMENT_ARRAY ]
+		until [ ! $m -lt $TOTAL_ELEMENT_ARRAY_LINE_NUMBER_OF_COMMENTED_SECTION ]
 	do
-	gsed -i "$((${m}+${PLUS_UN_TABLE_DES_MATIERE}))s/.*/\/\/Ligne : ${LIGNE_SECTION_SECOND[$m]}..........&/" $FILE
-	
-	#$((${k}+${LIGNE_DEBUT_TABLE_DES_MATIERE}))
-	#gsed -i '8s/.*/boubou&/' $FILE
+	gsed -i "$((${m}+${ADD_ONE_TO_FIRST_LINE_OF_TABLE_OF_CONTENT}))s/.*/\/\/Ligne : ${LINE_NUMBER_OF_COMMENTED_SECOND_SECTION[$m]}..........&/" $FILE
 
 m=`expr $m + 1`
 done
 echo "---------------------------"
-echo "Table des matières compilée"
+echo "Compiled table of content"
 echo "---------------------------"
