@@ -3,14 +3,45 @@
 #Configuration
 ################################################################################
 
-#Path of text code file which contain the table of content
-FILE="/Users/julien/scripts/magic-table-of-content-system/example/normalize.scss"
+
+#Value of Path of text code file which contain the table of content
+FILE=$1;
+
+echo "---------------------------"
+echo "Precessing file --> "$FILE
+echo "---------------------------"
+
+
+##Which symbol depending of language
+## double slash // for javascript, sylus, less, sass, C (comment symbol // one line)
+## double square ## for shell, .bash_profile, python (comment symbol # one line)
+## double exlamation point !! for PHP, javascript, C (comment symbol /* begining */end)
+
+echo $2
+
+COMM=$2
+
+
+if [ $COMM == "ww" ]
+  then
+ gsed -i -e "s;/\*;ww;g" "$FILE"
+ gsed -i -e "s;*\/;~~;g" "$FILE"
+ ENDMARKCOMMENT="~~"
+else
+ ENDMARKCOMMENT="//"
+fi
+
 #head of Table of content
-HEAD_TABLE_OF_CONTENT="//-----Table of content-----//"
+HEAD_TABLE_OF_CONTENT="-----Table of content-----"$ENDMARKCOMMENT
+HEAD_TABLE_OF_CONTENT=$COMM$HEAD_TABLE_OF_CONTENT
+echo "$"
 #footer of Table of content
-FOOTER_TABLE_OF_CONTENT="//--@Table of content@--//"
+FOOTER_TABLE_OF_CONTENT="--@Table of content@--"
+FOOTER_TABLE_OF_CONTENT=$COMM$FOOTER_TABLE_OF_CONTENT
 #marker at the begining of the comment line indicating items for table of content
-TABLE_SECTION_MARKER="//@"
+TABLE_SECTION_MARKER="@"
+TABLE_SECTION_MARKER=$COMM$TABLE_SECTION_MARKER
+echo $TABLE_SECTION_MARKER
 #comment special character
 COMMENT_SPECIAL_CHARACTER="@"
 #COMMENT_SPECIAL_CHARACTER="@"
@@ -71,15 +102,27 @@ LINE_NUMBER_OF_COMMENTED_SECOND_SECTION+=($(gsed -n "/$TABLE_SECTION_MARKER/=" "
 FIRST_LINE_OF_TABLE_OF_CONTENT_SECOND=$(gsed -n "/$HEAD_TABLE_OF_CONTENT/=" $FILE)
 ADD_ONE_TO_FIRST_LINE_OF_TABLE_OF_CONTENT=$(($FIRST_LINE_OF_TABLE_OF_CONTENT_SECOND+1))
 
+
+#ajout du caractère de commentaire aveant le mot ligne et son numéro
+LIGNE="Ligne :"
+LIGNE=$COMM$LIGNE
 #add line numbre to the table of content
 m=0
 		until [ ! $m -lt $TOTAL_ELEMENT_ARRAY_LINE_NUMBER_OF_COMMENTED_SECTION ]
 	do
+	#Utilisation de la virgule comme séparateur avec gsed
 	#add line number in the beginning of items from table of content a the dots seperator
-	gsed -i "$((${m}+${ADD_ONE_TO_FIRST_LINE_OF_TABLE_OF_CONTENT}))s/.*/\/\/Ligne : ${LINE_NUMBER_OF_COMMENTED_SECOND_SECTION[$m]}..........&/" $FILE
+	gsed -i "$((${m}+${ADD_ONE_TO_FIRST_LINE_OF_TABLE_OF_CONTENT}))s;.*;${LIGNE} ${LINE_NUMBER_OF_COMMENTED_SECOND_SECTION[$m]}..........&;" $FILE
 
 m=`expr $m + 1`
 done
+
+if [ $COMM == "ww" ]
+  then
+ gsed -i -e "s;ww;/\*;g" "$FILE"
+ gsed -i -e "s;~~;\*/;g" "$FILE"
+fi
+
 echo "---------------------------"
 echo "Compiled table of content"
 echo "---------------------------"
